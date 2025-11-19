@@ -1,4 +1,3 @@
-<img width="378" height="103" alt="image" src="https://github.com/user-attachments/assets/09b85112-059c-4dde-8f44-246c64f4ca04" /># TODO List 项目说明文档（示例模板）
 
 ## 1. 技术选型
 - **编程语言**：TS  代码严谨，可提前检查对应错误，易于维护 。  
