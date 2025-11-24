@@ -15,9 +15,15 @@ export default function NotificationBell() {
       const todos = JSON.parse(localStorage.getItem('todos') || '[]')
       const currentTime = new Date()
       const newNotifications: any[] = []
+      const currentUser = localStorage.getItem('currentUser')
+      const userEmail = currentUser ? JSON.parse(currentUser).email : null
 
       todos.forEach((todo: any) => {
         if (todo.completed) return
+        
+        // 如果任务有 userEmail 字段，只处理当前用户的任务
+        // 如果没有 userEmail 字段（旧数据），处理所有任务
+        if (todo.userEmail && userEmail && todo.userEmail !== userEmail) return
 
         const todoDate = new Date(todo.date)
         const reminderTime = new Date(todoDate)

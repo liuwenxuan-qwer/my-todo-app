@@ -20,7 +20,15 @@ export default function TodaysTasks() {
   const updateTodaysTasks = () => {
     const todos = JSON.parse(localStorage.getItem('todos') || '[]')
     const today = new Date().toISOString().split('T')[0]
-    const todaysItems = todos.filter((todo: any) => todo.date === today)
+    const currentUser = localStorage.getItem('currentUser')
+    const userEmail = currentUser ? JSON.parse(currentUser).email : null
+    
+    const todaysItems = todos.filter((todo: any) => {
+      const matchesDate = todo.date === today
+      // 如果任务有 userEmail 字段，只显示当前用户的任务
+      // 如果没有 userEmail 字段（旧数据），显示所有任务
+      return matchesDate && (!todo.userEmail || !userEmail || todo.userEmail === userEmail)
+    })
     setTodaysTodos(todaysItems)
     setCompletedCount(todaysItems.filter((t: any) => t.completed).length)
   }

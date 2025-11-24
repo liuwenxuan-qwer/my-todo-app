@@ -52,21 +52,41 @@ export default function ScheduleSharingPage() {
     const parsedUsers = JSON.parse(users)
     const usersData: { [email: string]: any[] } = {}
 
-    Object.entries(parsedUsers).forEach(([email, userData]: any) => {
-      usersData[email] = []
-    })
+    // 初始化所有用户的数据结构
+    if (Array.isArray(parsedUsers)) {
+      parsedUsers.forEach((user: any) => {
+        usersData[user.email] = []
+      })
+    } else {
+      // 兼容旧格式（对象格式）
+      Object.keys(parsedUsers).forEach((email) => {
+        usersData[email] = []
+      })
+    }
 
+    // 从 localStorage 读取所有任务，按 userEmail 分组
     const allTodos = localStorage.getItem('todos')
     if (allTodos) {
       const todos = JSON.parse(allTodos)
-      const currentUser = localStorage.getItem('currentUser')
-      if (currentUser) {
-        const user = JSON.parse(currentUser)
-        if (!usersData[user.email]) {
-          usersData[user.email] = []
+      todos.forEach((todo: any) => {
+        // 如果任务有 userEmail 字段，按用户分组
+        if (todo.userEmail) {
+          if (!usersData[todo.userEmail]) {
+            usersData[todo.userEmail] = []
+          }
+          usersData[todo.userEmail].push(todo)
+        } else {
+          // 兼容旧数据：没有 userEmail 的任务分配给当前用户
+          const currentUser = localStorage.getItem('currentUser')
+          if (currentUser) {
+            const user = JSON.parse(currentUser)
+            if (!usersData[user.email]) {
+              usersData[user.email] = []
+            }
+            usersData[user.email].push(todo)
+          }
         }
-        usersData[user.email] = todos
-      }
+      })
     }
 
     return usersData

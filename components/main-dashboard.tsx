@@ -14,18 +14,28 @@ export default function MainDashboard() {
   const [todos, setTodos] = useState<any[]>([])
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [sortByPriority, setSortByPriority] = useState(false)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   useEffect(() => {
     const storedTodos = localStorage.getItem('todos')
     if (storedTodos) {
       setTodos(JSON.parse(storedTodos))
     }
+    const user = localStorage.getItem('currentUser')
+    if (user) {
+      setCurrentUser(JSON.parse(user))
+    }
+    setIsInitialized(true)
   }, [])
 
   useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos))
-    window.dispatchEvent(new Event('todosUpdated'))
-  }, [todos])
+    // 只有在初始化完成后才保存到 localStorage，避免初始化时覆盖数据
+    if (isInitialized) {
+      localStorage.setItem('todos', JSON.stringify(todos))
+      window.dispatchEvent(new Event('todosUpdated'))
+    }
+  }, [todos, isInitialized])
 
   const getDateString = (date: Date) => {
     const year = date.getFullYear()
@@ -36,7 +46,14 @@ export default function MainDashboard() {
 
   const getTodosForDate = (date: Date) => {
     const dateStr = getDateString(date)
-    return todos.filter(todo => todo.date === dateStr)
+    // 只显示当前用户的任务，如果没有 userEmail 字段则显示（兼容旧数据）
+    return todos.filter(todo => {
+      const matchesDate = todo.date === dateStr
+      if (!currentUser) return matchesDate
+      // 如果任务有 userEmail 字段，只显示当前用户的任务
+      // 如果没有 userEmail 字段（旧数据），显示所有任务
+      return matchesDate && (!todo.userEmail || todo.userEmail === currentUser.email)
+    })
   }
 
   const handleAddTodo = (newTodo: any) => {
@@ -47,6 +64,7 @@ export default function MainDashboard() {
       date: dateStr,
       completed: false,
       reminderShown: false,
+      userEmail: currentUser?.email || null, // 添加用户邮箱标识
     }
     setTodos([...todos, todoWithDate])
     setIsAddDialogOpen(false)
